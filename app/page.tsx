@@ -1,65 +1,214 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { AnalysisResult } from "@/types/commitment";
+import { IntakeResult } from "@/types/intake";
+import OracleIntakeChat from "@/components/intake/OracleIntakeChat";
+import TriageBoard from "@/components/dashboard/TriageBoard";
+import RiskDashboard from "@/components/dashboard/RiskDashboard";
+import CollisionMap from "@/components/dashboard/CollisionMap";
+import RescuePlanPanel from "@/components/dashboard/RescuePlanPanel";
+import AIReasoningPanel from "@/components/dashboard/AIReasoningPanel";
+import FutureTimeline from "@/components/dashboard/FutureTimeline";
+import AdaptiveReplanner from "@/components/dashboard/AdaptiveReplanner";
+import HealthScoreGauge from "@/components/dashboard/HealthScoreGauge";
+import DashboardStats from "@/components/dashboard/DashboardStats";
+import AgentStatusCards from "@/components/dashboard/AgentStatusCards";
+import AIActivityFeed from "@/components/dashboard/AIActivityFeed";
+import ScheduleChat from "@/components/dashboard/ScheduleChat";
+import ExecutiveBrief from "@/components/dashboard/ExecutiveBrief";
+import RiskSimulator from "@/components/dashboard/RiskSimulator";
+import WorkloadHeatmap from "@/components/dashboard/WorkloadHeatmap";
+import DashboardCharts from "@/components/dashboard/DashboardCharts";
+import WorkBreakdownPanel from "@/components/dashboard/WorkBreakdownPanel";
+import ConfidencePanel from "@/components/dashboard/ConfidencePanel";
+import ScopePanel from "@/components/dashboard/ScopePanel";
+import AgentPipeline from "@/components/dashboard/AgentPipeline";
+import AnimatedSection from "@/components/ui/AnimatedSection";
+import OracleLoading from "@/components/ui/OracleLoading";
+import { normalizeAnalysis } from "@/lib/engine/normalizeAnalysis";
 
 export default function Home() {
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [availableHoursPerDay, setAvailableHoursPerDay] = useState(5);
+  const [intakeKey, setIntakeKey] = useState(0);
+  const [demoMode, setDemoMode] = useState(false);
+
+  async function generateReport(intake: IntakeResult) {
+    setLoading(true);
+    const dailyHours = Math.max(1, Number(intake.availability.hoursPerDay || 5));
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(intake),
+      });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || "Failed to generate the report.");
+
+      setAvailableHoursPerDay(dailyHours);
+      setAnalysis(normalizeAnalysis(data as AnalysisResult, { availableHoursPerDay: dailyHours }));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function replanCommitments(eventType: string) {
+    if (!analysis) return;
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/replan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ previousAnalysis: analysis, eventType }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || "Failed to replan commitments.");
+
+      setAnalysis(
+        normalizeAnalysis(data as AnalysisResult, {
+          availableHoursPerDay,
+          previousAnalysis: analysis,
+          eventType,
+        })
+      );
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadDemoScenario() {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/demo-seed");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to load the demo scenario.");
+
+      setAvailableHoursPerDay(6);
+      setDemoMode(true);
+      setAnalysis(data as AnalysisResult);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to load the demo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function startNewIntake() {
+    setAnalysis(null);
+    setDemoMode(false);
+    setIntakeKey((current) => current + 1);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="min-h-screen bg-slate-950 p-5 text-white md:p-8">
+      {loading && <OracleLoading />}
+      <section className="mx-auto max-w-7xl space-y-8">
+        <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-cyan-400">Deadline Oracle AI</p>
+            <h1 className="mt-2 max-w-4xl text-4xl font-bold md:text-5xl">
+              {analysis ? "Your workload intelligence report." : "Talk it through. Then trust the plan."}
+            </h1>
+            <p className="mt-4 max-w-2xl text-slate-400">
+              {analysis
+                ? "Scope, capacity, risk, and rescue actions—built from a clarified understanding of your commitments."
+                : "An AI project manager that investigates your commitments before it predicts deadline risk."}
+            </p>
+          </div>
+          {analysis ? (
+            <button
+              type="button"
+              onClick={startNewIntake}
+              className="shrink-0 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-cyan-400 hover:text-cyan-300"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Start new intake
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={loadDemoScenario}
+              disabled={loading}
+              className="shrink-0 rounded-lg border border-cyan-500/60 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-400/20 disabled:opacity-50"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+              Load offline demo
+            </button>
+          )}
+        </header>
+
+        {!analysis ? (
+          <div className="mx-auto max-w-4xl">
+            <OracleIntakeChat key={intakeKey} onReady={generateReport} />
+          </div>
+        ) : (
+          <section className="space-y-6">
+            {demoMode && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-800/60 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-200">
+                <span><strong>Offline demo:</strong> static scenario loaded with zero Gemini calls.</span>
+                <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold">Presentation safe</span>
+              </div>
+            )}
+            <AnimatedSection>
+              <ExecutiveBrief analysis={analysis} />
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.05}>
+              <ScopePanel commitments={analysis.workloadAnalysis ?? []} />
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.07}>
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+                <div className="xl:col-span-2">
+                  <WorkBreakdownPanel commitments={analysis.workloadAnalysis ?? []} />
+                </div>
+                <ConfidencePanel commitments={analysis.workloadAnalysis ?? []} />
+              </div>
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.09}>
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+                <HealthScoreGauge analysis={analysis} />
+                <div className="xl:col-span-2">
+                  <DashboardStats analysis={analysis} />
+                </div>
+              </div>
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.11}>
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <AgentStatusCards />
+                <AIActivityFeed steps={analysis.reasoningSteps} />
+              </div>
+            </AnimatedSection>
+
+            {!demoMode && <AnimatedSection delay={0.13}><ScheduleChat analysis={analysis} /></AnimatedSection>}
+            <AnimatedSection delay={0.15}><RiskSimulator analysis={analysis} /></AnimatedSection>
+            <AnimatedSection delay={0.17}><WorkloadHeatmap analysis={analysis} /></AnimatedSection>
+            <DashboardCharts analysis={analysis} />
+
+            <AnimatedSection delay={0.19}>
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <TriageBoard analysis={analysis} />
+                <RiskDashboard analysis={analysis} />
+                <FutureTimeline analysis={analysis} />
+                {!demoMode && <AdaptiveReplanner analysis={analysis} onReplan={replanCommitments} loading={loading} />}
+                <CollisionMap analysis={analysis} />
+                <RescuePlanPanel rescuePlan={analysis.rescuePlan} />
+              </div>
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.21}><AIReasoningPanel steps={analysis.reasoningSteps} /></AnimatedSection>
+            <AnimatedSection delay={0.23}><AgentPipeline /></AnimatedSection>
+          </section>
+        )}
+      </section>
+    </main>
   );
 }
