@@ -27,15 +27,21 @@ Instead of becoming another to-do list, Oracle behaves like an AI crisis analyst
 
 Then it acts before that prediction becomes reality.
 
-Understand
-      ↓
-Predict
-      ↓
-Detect
-      ↓
-Rescue
-      ↓
-Adapt
+```text
+        Understand
+             │
+             ▼
+         Predict
+             │
+             ▼
+          Detect
+             │
+             ▼
+          Rescue
+             │
+             ▼
+           Adapt
+```
 
 ## 🔮 Future Failure Prediction
 
@@ -49,22 +55,27 @@ Oracle continuously asks:
 
 "What is most likely to fail next?"
 
-Current Commitments
-        │
-        ▼
-Available Time Analysis
-        │
-        ▼
-Workload Pressure Model
-        │
-        ▼
-Deadline Collision Detection
-        │
-        ▼
-Failure Probability Prediction
-        │
-        ▼
-AI Rescue Strategy
+```text
+        📥 Commitment Intelligence
+                   │
+                   ▼
+       🕒 Time & Capacity Analysis
+                   │
+                   ▼
+      📊 Workload Pressure Modeling
+                   │
+                   ▼
+      ⚠️ Deadline Collision Detection
+                   │
+                   ▼
+      🔮 Future Failure Prediction
+                   │
+                   ▼
+        🛟 AI Rescue Planning
+                   │
+                   ▼
+         🔄 Adaptive Replanning
+```
 
 ## 📊 Inside Oracle : A Preview
 
