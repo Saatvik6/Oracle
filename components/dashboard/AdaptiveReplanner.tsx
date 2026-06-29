@@ -44,7 +44,7 @@ export default function AdaptiveReplanner({
             key={event.type}
             onClick={() => onReplan(event.type)}
             disabled={loading}
-            className="bg-slate-950 border border-slate-700 rounded-xl p-4 text-left hover:border-cyan-400 transition disabled:opacity-50"
+            className="bg-slate-950 border border-slate-700 rounded-xl p-4 text-left hover:border-violet-400 transition disabled:opacity-50"
           >
             <p className="font-semibold">{event.label}</p>
             <p className="text-xs text-slate-500 mt-1">

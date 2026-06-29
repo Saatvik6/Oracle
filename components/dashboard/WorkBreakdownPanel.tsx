@@ -8,7 +8,7 @@ export default function WorkBreakdownPanel({
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-400">Execution model</p>
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-400">Execution model</p>
         <h2 className="mt-2 text-xl font-bold text-white">Work Breakdown</h2>
       </div>
 
@@ -20,7 +20,7 @@ export default function WorkBreakdownPanel({
                 <h3 className="font-semibold text-white">{commitment.title}</h3>
                 <p className="mt-1 text-xs text-slate-500">{commitment.taskType}</p>
               </div>
-              <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300">
+              <span className="rounded-full bg-violet-400/10 px-3 py-1 text-xs font-semibold text-violet-300">
                 {commitment.effortEstimate.likelyHours}h likely
               </span>
             </div>

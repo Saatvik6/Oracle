@@ -18,7 +18,7 @@ export default function HealthScoreGauge({ analysis }: Props) {
 
   return (
     <section className="bg-linear-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6">
-      <p className="text-sm text-cyan-400 font-semibold">
+      <p className="text-sm text-violet-400 font-semibold">
         Commitment Health
       </p>
 
@@ -30,7 +30,7 @@ export default function HealthScoreGauge({ analysis }: Props) {
 
         <div className="text-right">
           <p className="text-sm text-slate-400">Status</p>
-          <p className="text-xl font-bold text-cyan-400">
+          <p className="text-xl font-bold text-violet-400">
             {formatHealthStatus(status)}
           </p>
         </div>
@@ -41,7 +41,7 @@ export default function HealthScoreGauge({ analysis }: Props) {
         initial={{ width: 0 }}
         animate={{ width: `${score}%` }}
         transition={{ duration: 0.8 }}
-        className="h-full bg-cyan-400"
+        className="h-full bg-violet-400"
         />
       </div>
 

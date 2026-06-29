@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0c0e13;
+  --foreground: #f4f1ff;
+  --accent: #7f77dd;
+  --accent-deep: #534ab7;
 }
 
 @theme inline {
@@ -12,15 +14,79 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+button,
+textarea,
+input {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(127, 119, 221, 0.36);
+  color: white;
+}
+
+.oracle-backdrop {
+  background-image:
+    radial-gradient(circle at 76% 6%, rgba(83, 74, 183, 0.12), transparent 31rem),
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: auto, 72px 72px, 72px 72px;
+  background-position: center, center, center;
+}
+
+.oracle-scrollbar {
+  scrollbar-color: rgba(127, 119, 221, 0.42) transparent;
+  scrollbar-width: thin;
+}
+
+.oracle-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.oracle-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(127, 119, 221, 0.42);
+}
+
+.oracle-thinking-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #8f87df;
+  animation: oracle-thinking 0.9s ease-in-out infinite;
+}
+
+@keyframes oracle-thinking {
+  0%, 100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

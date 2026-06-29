@@ -11,7 +11,7 @@ export default function AgentDebate({ analysis }: { analysis: AnalysisResult }) 
     {
       agent: "Planner Agent",
       icon: Bot,
-      tone: "text-cyan-300",
+      tone: "text-violet-300",
       status: "PROPOSAL",
       text: `Defer ${stable?.title || "the lowest-priority work"} and protect the critical path.`,
     },
@@ -42,7 +42,7 @@ export default function AgentDebate({ analysis }: { analysis: AnalysisResult }) 
     <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6 md:p-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400">Agent Council</p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-400">Agent Council</p>
           <h2 className="mt-2 text-2xl font-bold">The agents disagreed. Then negotiated.</h2>
           <p className="mt-2 text-sm text-slate-400">Decision summaries from specialized agents—not hidden chain-of-thought.</p>
         </div>

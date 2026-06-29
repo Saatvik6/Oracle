@@ -18,7 +18,7 @@ const welcomeMessage: ChatMessage = {
   id: "welcome",
   role: "oracle",
   content:
-    "Tell me everything competing for your attention—assignments, projects, deadlines, available time, blockers. A messy brain-dump is perfect.",
+    "Give me the unedited version: deadlines, unfinished work, available hours, and anything currently blocked. I’ll work out what needs a decision before I build the schedule.",
   timestamp: new Date().toISOString(),
 };
 
@@ -192,6 +192,7 @@ export default function OracleIntakeChat({ onReady }: Props) {
     setState("analyzing_scope");
 
     try {
+      await new Promise((resolve) => window.setTimeout(resolve, 500));
       const response = await fetch("/api/intake", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -255,60 +256,62 @@ export default function OracleIntakeChat({ onReady }: Props) {
   }
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/70 shadow-2xl shadow-cyan-950/20 backdrop-blur">
-      <div className="border-b border-slate-800 px-5 py-5 sm:px-7">
+    <section className="overflow-hidden border border-white/[0.09] bg-[#101218] shadow-[0_28px_80px_rgba(0,0,0,0.32)]">
+      <div className="border-b border-white/[0.07] px-5 py-5 sm:px-7">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-cyan-300">
+            <div className="flex items-center gap-2 text-[#9b94e3]">
               <Sparkles size={18} />
-              <span className="text-xs font-bold uppercase tracking-[0.2em]">Oracle Intake</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.22em]">Live intake</span>
             </div>
-            <h2 className="mt-2 text-2xl font-bold text-white">Let’s untangle the workload.</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              I’ll investigate the details that materially change your plan.
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-white">What needs your attention?</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Start anywhere. Oracle will find the missing decisions.
             </p>
           </div>
-          <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs text-slate-300">
+          <span className="border border-white/10 px-3 py-1 text-xs text-slate-400">
             {state === "ready_to_generate" ? "Ready" : "Intake in progress"}
           </span>
         </div>
-        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-slate-800">
+        <div className="mt-5 h-px overflow-hidden bg-white/[0.07]">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 transition-all duration-500"
+            className="h-full bg-[#7f77dd] transition-[width] duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
       </div>
 
-      <div className="max-h-[52vh] min-h-[340px] space-y-5 overflow-y-auto px-5 py-6 sm:px-7">
+      <div className="oracle-scrollbar max-h-[54vh] min-h-[360px] space-y-7 overflow-y-auto px-5 py-7 sm:px-7">
         {messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
           >
-            <div
-              className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-6 sm:max-w-[75%] ${
-                message.role === "oracle"
-                  ? "rounded-tl-sm border border-cyan-900/70 bg-cyan-950/40 text-cyan-50"
-                  : "rounded-tr-sm bg-violet-600 text-white"
-              }`}
-            >
-              {message.content}
-              {!!message.attachments?.length && (
-                <div className="mt-3 flex flex-wrap gap-2 border-t border-white/10 pt-3">
-                  {message.attachments.map((attachment) => (
-                    <span key={attachment.id} className="rounded-lg bg-slate-950/40 px-2.5 py-1 text-[11px] text-slate-200">
-                      {attachment.name}
-                    </span>
-                  ))}
+            {message.role === "oracle" ? (
+              <div className="flex w-full max-w-4xl gap-4">
+                <div className="mt-1 grid h-7 w-7 shrink-0 place-items-center bg-[#7f77dd] text-[10px] font-black text-white">O</div>
+                <div>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8f87df]">Oracle</p>
+                  <div className="whitespace-pre-wrap text-[15px] leading-7 text-slate-200">{message.content}</div>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="max-w-[88%] rounded-[18px_4px_18px_18px] bg-[#5f58b7] px-4 py-3 text-sm leading-6 text-white sm:max-w-[72%]">
+                <div className="whitespace-pre-wrap">{message.content}</div>
+                {!!message.attachments?.length && (
+                  <div className="mt-3 flex flex-wrap gap-2 border-t border-white/15 pt-3">
+                    {message.attachments.map((attachment) => (
+                      <span key={attachment.id} className="bg-black/15 px-2.5 py-1 text-[11px] text-violet-100">{attachment.name}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
 
         {questions.map((question) => (
-          <div key={question.id} className="rounded-2xl border border-slate-700 bg-slate-950 p-4">
+          <div key={question.id} className="ml-11 border-l-2 border-[#7f77dd] bg-white/[0.025] px-5 py-4">
             <div className="flex items-center gap-2">
               <span className="rounded-full bg-amber-400/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-300">
                 {question.impact} impact
@@ -324,7 +327,7 @@ export default function OracleIntakeChat({ onReady }: Props) {
                     type="button"
                     disabled={loading}
                     onClick={() => answerQuestion(question, option)}
-                    className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-left text-xs text-slate-200 transition hover:border-cyan-400 hover:text-cyan-300 disabled:opacity-50"
+                    className="border border-white/10 bg-[#151721] px-3 py-2 text-left text-xs text-slate-200 transition-[border-color,color,transform] duration-200 hover:border-[#7f77dd] hover:text-white active:scale-[0.98] disabled:opacity-50"
                   >
                     {option}
                   </button>
@@ -335,14 +338,18 @@ export default function OracleIntakeChat({ onReady }: Props) {
         ))}
 
         {loading && (
-          <div className="flex items-center gap-3 text-sm text-slate-400">
-            <Loader2 className="animate-spin text-cyan-400" size={18} />
-            Checking scope, effort, deadlines, and hidden blockers…
+          <div className="ml-11 flex items-center gap-3 text-sm text-slate-500">
+            <div className="flex items-center gap-1" aria-label="Oracle is thinking">
+              <span className="oracle-thinking-dot" />
+              <span className="oracle-thinking-dot [animation-delay:120ms]" />
+              <span className="oracle-thinking-dot [animation-delay:240ms]" />
+            </div>
+            Oracle is checking what changes the plan.
           </div>
         )}
       </div>
 
-      <div className="border-t border-slate-800 bg-slate-950/60 p-5 sm:p-7">
+      <div className="border-t border-white/[0.07] bg-[#0d0f15] p-5 sm:p-7">
         {error && <p className="mb-3 text-sm text-rose-400">{error}</p>}
 
         {state === "ready_to_generate" ? (
@@ -360,7 +367,7 @@ export default function OracleIntakeChat({ onReady }: Props) {
               type="button"
               onClick={generateReport}
               disabled={generating}
-              className="flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-60"
+              className="flex items-center justify-center gap-2 bg-[#6b63c7] px-5 py-3 text-sm font-semibold text-white transition-[background-color,transform,opacity] duration-200 hover:bg-[#7f77dd] active:scale-95 disabled:opacity-60"
             >
               {generating ? <Loader2 className="animate-spin" size={17} /> : <ArrowRight size={17} />}
               {generating ? "Building report…" : "Generate intelligence report"}
@@ -373,24 +380,26 @@ export default function OracleIntakeChat({ onReady }: Props) {
             onDragOver={(event) => event.preventDefault()}
             className="space-y-3"
           >
-            <textarea
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={loading || generating}
-              rows={3}
-              placeholder={
-                questions.length
-                  ? "Answer in your own words, or choose an option above…"
-                  : "Example: Hackathon Sunday, chemistry assignment tomorrow, 4 hours free tonight…"
-              }
-              className="min-h-24 w-full resize-none rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400 disabled:opacity-60"
-            />
+            <div className="border border-white/10 bg-[#151721] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-[border-color,background-color,box-shadow] duration-200 focus-within:border-[#7f77dd] focus-within:bg-[#181a26] focus-within:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_0_0_3px_rgba(127,119,221,0.08)]">
+              <textarea
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={loading || generating}
+                rows={3}
+                placeholder={
+                  questions.length
+                    ? "Answer in your own words, or choose an option above…"
+                    : "Dump the deadlines, blockers, and half-finished work here…"
+                }
+                className="min-h-24 w-full resize-none bg-transparent p-4 text-sm leading-6 text-white outline-none placeholder:text-slate-600 disabled:opacity-60"
+              />
+            </div>
             {!!pendingAttachments.length && (
               <div className="flex flex-wrap gap-2">
                 {pendingAttachments.map((attachment) => (
-                  <div key={attachment.id} className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300">
-                    {attachment.mimeType.startsWith("image/") ? <FileImage size={14} className="text-violet-300" /> : attachment.mimeType.startsWith("audio/") ? <FileAudio size={14} className="text-amber-300" /> : <FileText size={14} className="text-cyan-300" />}
+                  <div key={attachment.id} className="flex items-center gap-2 border border-white/10 bg-[#151721] px-3 py-2 text-xs text-slate-300">
+                    {attachment.mimeType.startsWith("image/") ? <FileImage size={14} className="text-violet-300" /> : attachment.mimeType.startsWith("audio/") ? <FileAudio size={14} className="text-amber-300" /> : <FileText size={14} className="text-violet-300" />}
                     <span className="max-w-44 truncate">{attachment.name}</span>
                     <button
                       type="button"
@@ -418,7 +427,7 @@ export default function OracleIntakeChat({ onReady }: Props) {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={loading || pendingAttachments.length >= 4}
-                  className="flex items-center gap-2 rounded-xl border border-dashed border-slate-600 px-4 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-cyan-400 hover:text-cyan-300 disabled:opacity-40"
+                  className="flex items-center gap-2 border border-dashed border-white/15 px-4 py-2.5 text-xs font-semibold text-slate-400 transition-[border-color,color,transform] duration-200 hover:border-[#7f77dd] hover:text-white active:scale-[0.98] disabled:opacity-40"
                 >
                   <Paperclip size={15} /> Add PDF, screenshot, or voice note
                 </button>
@@ -426,10 +435,10 @@ export default function OracleIntakeChat({ onReady }: Props) {
                   type="button"
                   onClick={recording ? stopRecording : startRecording}
                   disabled={loading || generating || (!recording && pendingAttachments.length >= 4)}
-                  className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold transition disabled:opacity-40 ${
+                  className={`flex items-center gap-2 border px-4 py-2.5 text-xs font-semibold transition-[border-color,color,background-color,transform] duration-200 active:scale-[0.98] disabled:opacity-40 ${
                     recording
                       ? "border-rose-400 bg-rose-400/10 text-rose-300"
-                      : "border-slate-600 text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
+                      : "border-white/15 text-slate-400 hover:border-[#7f77dd] hover:text-white"
                   }`}
                 >
                   {recording ? <Square size={14} fill="currentColor" /> : <Mic size={15} />}
@@ -441,7 +450,7 @@ export default function OracleIntakeChat({ onReady }: Props) {
               <button
                 type="submit"
                 disabled={recording || (!input.trim() && !pendingAttachments.length) || loading || generating}
-                className="flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center justify-center gap-2 bg-[#6b63c7] px-5 py-3 text-sm font-semibold text-white transition-[background-color,transform,opacity] duration-200 hover:bg-[#7f77dd] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Send size={16} /> Send to Oracle
               </button>

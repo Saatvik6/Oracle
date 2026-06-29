@@ -35,11 +35,11 @@ export default function DashboardStats({ analysis }: Props) {
   ];
 
   return (
-    <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-      {stats.map((stat) => (
+    <section className="grid grid-cols-2 gap-3">
+      {stats.map((stat, index) => (
         <div
           key={stat.label}
-          className="bg-slate-900 border border-slate-800 rounded-2xl p-4"
+          className={`border border-slate-800 bg-slate-900 p-4 ${index === stats.length - 1 ? "col-span-2" : ""}`}
         >
           <p className="text-xs uppercase text-slate-500 font-semibold">
             {stat.label}

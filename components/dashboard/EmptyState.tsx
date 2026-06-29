@@ -16,7 +16,7 @@ export default function EmptyState() {
             key={item}
             className="bg-slate-950 border border-slate-800 rounded-xl p-4"
           >
-            <p className="text-cyan-400 font-bold">0{index + 1}</p>
+            <p className="text-violet-400 font-bold">0{index + 1}</p>
             <p className="text-sm text-slate-300 mt-3">{item}</p>
           </div>
         ))}

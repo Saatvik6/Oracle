@@ -20,7 +20,7 @@ export default function OracleLoading() {
     >
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-2xl w-full mx-4">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
+          <div className="h-12 w-12 rounded-full border-2 border-violet-400 border-t-transparent animate-spin" />
 
           <div>
             <h2 className="text-2xl font-bold">
@@ -48,7 +48,7 @@ export default function OracleLoading() {
             >
               <div className="flex items-center justify-between">
                 <p className="font-semibold">{agent}</p>
-                <span className="text-xs text-cyan-400 font-bold">
+                <span className="text-xs text-violet-400 font-bold">
                   RUNNING
                 </span>
               </div>
@@ -62,7 +62,7 @@ export default function OracleLoading() {
                     repeat: Infinity,
                     delay: index * 0.18,
                   }}
-                  className="h-full w-1/2 bg-cyan-400"
+                  className="h-full w-1/2 bg-violet-400"
                 />
               </div>
             </motion.div>

@@ -13,14 +13,14 @@ export default function FutureTimeline({ analysis }: Props) {
         {analysis.timeline.map((event, index) => (
           <div key={event.id} className="flex gap-4">
             <div className="flex flex-col items-center">
-              <div className="w-4 h-4 rounded-full bg-cyan-400" />
+              <div className="w-4 h-4 rounded-full bg-violet-400" />
               {index !== analysis.timeline.length - 1 && (
                 <div className="w-px flex-1 bg-slate-700 mt-2" />
               )}
             </div>
 
             <div className="pb-5">
-              <p className="text-xs uppercase text-cyan-400 font-bold">
+              <p className="text-xs uppercase text-violet-400 font-bold">
                 {event.type}
               </p>
               <h3 className="font-semibold mt-1">{event.title}</h3>

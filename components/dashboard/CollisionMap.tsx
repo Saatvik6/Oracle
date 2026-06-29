@@ -21,7 +21,7 @@ export default function CollisionMap({ analysis }: Props) {
                   {collision.explanation}
                 </p>
 
-                <span className="text-xs uppercase text-cyan-400 font-bold">
+                <span className="text-xs uppercase text-violet-400 font-bold">
                   {collision.severity}
                 </span>
               </div>

@@ -89,7 +89,7 @@ export default function ScheduleChat({ analysis }: Props) {
           </p>
         </div>
 
-        <span className="text-xs text-cyan-400 font-bold border border-cyan-400/40 rounded-full px-3 py-1">
+        <span className="text-xs text-violet-400 font-bold border border-violet-400/40 rounded-full px-3 py-1">
           LIVE
         </span>
       </div>
@@ -99,7 +99,7 @@ export default function ScheduleChat({ analysis }: Props) {
           <button
             key={item}
             onClick={() => askQuestion(item)}
-            className="text-xs bg-slate-950 border border-slate-700 hover:border-cyan-400 rounded-full px-3 py-2 text-slate-300 transition"
+            className="text-xs bg-slate-950 border border-slate-700 hover:border-violet-400 rounded-full px-3 py-2 text-slate-300 transition"
           >
             {item}
           </button>
@@ -112,7 +112,7 @@ export default function ScheduleChat({ analysis }: Props) {
             key={index}
             className={`rounded-xl p-4 text-sm ${
               message.role === "user"
-                ? "bg-cyan-400 text-slate-950 ml-8"
+                ? "bg-violet-400 text-slate-950 ml-8"
                 : "bg-slate-950 border border-slate-800 text-slate-300 mr-8"
             }`}
           >
@@ -135,13 +135,13 @@ export default function ScheduleChat({ analysis }: Props) {
             if (e.key === "Enter") askQuestion();
           }}
           placeholder="Ask: Can I go out tomorrow evening?"
-          className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm outline-none focus:border-cyan-400"
+          className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm outline-none focus:border-violet-400"
         />
 
         <button
           onClick={() => askQuestion()}
           disabled={loading || !question.trim()}
-          className="bg-cyan-400 text-slate-950 font-semibold px-5 py-3 rounded-xl disabled:opacity-50"
+          className="bg-violet-400 text-slate-950 font-semibold px-5 py-3 rounded-xl disabled:opacity-50"
         >
           Ask
         </button>

@@ -13,7 +13,7 @@ export default function RescuePlanPanel({ rescuePlan }: Props) {
 
       <div className="space-y-5">
         <div>
-          <h3 className="text-sm uppercase text-cyan-400 font-bold mb-2">
+          <h3 className="text-sm uppercase text-violet-400 font-bold mb-2">
             Ordered Actions
           </h3>
 
@@ -27,7 +27,7 @@ export default function RescuePlanPanel({ rescuePlan }: Props) {
         </div>
 
         <div>
-          <h3 className="text-sm uppercase text-cyan-400 font-bold mb-2">
+          <h3 className="text-sm uppercase text-violet-400 font-bold mb-2">
             Recommended Cuts
           </h3>
 
@@ -43,7 +43,7 @@ export default function RescuePlanPanel({ rescuePlan }: Props) {
         </div>
 
         <div className="bg-slate-950 border border-slate-800 rounded-xl p-4">
-          <h3 className="text-sm uppercase text-cyan-400 font-bold mb-2">
+          <h3 className="text-sm uppercase text-violet-400 font-bold mb-2">
             Fallback Strategy
           </h3>
           <p className="text-sm text-slate-300">

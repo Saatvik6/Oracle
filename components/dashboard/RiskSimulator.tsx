@@ -27,7 +27,7 @@ export default function RiskSimulator({ analysis }: Props) {
           </p>
         </div>
 
-        <span className="text-xs text-cyan-400 font-bold border border-cyan-400/40 rounded-full px-3 py-1">
+        <span className="text-xs text-violet-400 font-bold border border-violet-400/40 rounded-full px-3 py-1">
           WHAT-IF
         </span>
       </div>
@@ -35,7 +35,7 @@ export default function RiskSimulator({ analysis }: Props) {
       <div className="mt-6">
         <div className="flex justify-between text-sm text-slate-400">
           <span>Available Hours</span>
-          <span className="text-cyan-400 font-bold">{hours} hrs</span>
+          <span className="text-violet-400 font-bold">{hours} hrs</span>
         </div>
 
         <input
@@ -53,7 +53,7 @@ export default function RiskSimulator({ analysis }: Props) {
           <p className="text-xs uppercase text-slate-500 font-bold">
             Simulated Health
           </p>
-          <p className="text-3xl font-bold mt-2 text-cyan-400">
+          <p className="text-3xl font-bold mt-2 text-violet-400">
             {simulation.healthScore}
           </p>
         </div>
@@ -86,7 +86,7 @@ export default function RiskSimulator({ analysis }: Props) {
 
       <div className="mt-6 h-3 bg-slate-800 rounded-full overflow-hidden">
         <div
-          className="h-full bg-cyan-400 transition-all"
+          className="h-full bg-violet-400 transition-all"
           style={{ width: `${simulation.healthScore}%` }}
         />
       </div>

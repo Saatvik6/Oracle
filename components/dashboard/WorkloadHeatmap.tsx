@@ -14,7 +14,7 @@ function getBarClass(intensity: string) {
     case "medium":
       return "h-16 bg-yellow-400";
     default:
-      return "h-8 bg-cyan-400";
+      return "h-8 bg-violet-400";
   }
 }
 
@@ -32,7 +32,7 @@ export default function WorkloadHeatmap({ analysis }: Props) {
           </p>
         </div>
 
-        <span className="text-xs text-cyan-400 font-bold border border-cyan-400/40 rounded-full px-3 py-1">
+        <span className="text-xs text-violet-400 font-bold border border-violet-400/40 rounded-full px-3 py-1">
           7 DAYS
         </span>
       </div>

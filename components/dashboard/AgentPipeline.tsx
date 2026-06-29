@@ -40,7 +40,7 @@ export default function AgentPipeline() {
           </p>
         </div>
 
-        <span className="text-xs text-cyan-400 font-bold border border-cyan-400/40 rounded-full px-3 py-1">
+        <span className="text-xs text-violet-400 font-bold border border-violet-400/40 rounded-full px-3 py-1">
           ACTIVE
         </span>
       </div>
@@ -54,7 +54,7 @@ export default function AgentPipeline() {
             transition={{ delay: index * 0.1 }}
             className="relative bg-slate-950 border border-slate-800 rounded-xl p-4"
           >
-            <div className="h-8 w-8 rounded-full bg-cyan-400/10 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-sm font-bold">
+            <div className="h-8 w-8 rounded-full bg-violet-400/10 border border-violet-400/40 flex items-center justify-center text-violet-400 text-sm font-bold">
               {index + 1}
             </div>
 
@@ -62,8 +62,8 @@ export default function AgentPipeline() {
             <p className="text-xs text-slate-400 mt-2">{agent.role}</p>
 
             <div className="mt-4 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="text-xs text-cyan-400 font-semibold">
+              <span className="h-2 w-2 rounded-full bg-violet-400 animate-pulse" />
+              <span className="text-xs text-violet-400 font-semibold">
                 Complete
               </span>
             </div>

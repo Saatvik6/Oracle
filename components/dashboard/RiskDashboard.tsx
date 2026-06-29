@@ -15,7 +15,7 @@ function getHealthColor(status: string) {
     case "collapsing":
       return "bg-red-400";
     default:
-      return "bg-cyan-400";
+      return "bg-violet-400";
   }
 }
 
@@ -44,7 +44,7 @@ export default function RiskDashboard({ analysis }: Props) {
                 </div>
 
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-cyan-400">
+                  <p className="text-2xl font-bold text-violet-400">
                     {risk.riskScore}%
                   </p>
                   <p className="text-xs text-slate-500 uppercase">

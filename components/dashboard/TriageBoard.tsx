@@ -22,7 +22,7 @@ export default function TriageBoard({ analysis }: Props) {
             key={category}
             className="bg-slate-950 border border-slate-800 rounded-xl p-4"
           >
-            <h3 className="text-sm uppercase text-cyan-400 font-bold mb-3">
+            <h3 className="text-sm uppercase text-violet-400 font-bold mb-3">
               {categoryLabels[category]}
             </h3>
 

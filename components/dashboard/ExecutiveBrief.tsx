@@ -11,10 +11,10 @@ export default function ExecutiveBrief({ analysis }: { analysis: AnalysisResult 
   const gap = Math.max(0, analysis.capacity.workloadGapHours);
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-cyan-400/30 bg-gradient-to-br from-cyan-400/15 via-slate-900 to-violet-950/30">
+    <section className="overflow-hidden border border-violet-400/25 bg-gradient-to-br from-violet-400/10 via-[#11131a] to-[#151329]">
       <div className="grid gap-0 lg:grid-cols-[1.5fr_0.8fr]">
         <div className="p-6 md:p-8">
-          <div className="flex items-center gap-2 text-cyan-300">
+          <div className="flex items-center gap-2 text-violet-300">
             <BriefcaseBusiness size={18} />
             <p className="text-xs font-bold uppercase tracking-[0.2em]">Morning Executive Brief</p>
           </div>
@@ -42,7 +42,7 @@ export default function ExecutiveBrief({ analysis }: { analysis: AnalysisResult 
           </div>
         </div>
 
-        <aside className="border-t border-cyan-400/20 bg-slate-950/45 p-6 lg:border-l lg:border-t-0 md:p-8">
+        <aside className="border-t border-violet-400/20 bg-slate-950/45 p-6 lg:border-l lg:border-t-0 md:p-8">
           <div className="flex items-center gap-2 text-violet-300">
             <Sparkles size={16} />
             <span className="text-xs font-bold uppercase tracking-wider">Already handled</span>

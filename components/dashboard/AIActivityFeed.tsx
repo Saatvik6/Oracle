@@ -20,7 +20,7 @@ export default function AIActivityFeed({ steps }: Props) {
             transition={{ delay: index * 0.12 }}
             className="flex items-start gap-3 bg-slate-950 border border-slate-800 rounded-xl p-3"
           >
-            <div className="mt-1 h-2 w-2 rounded-full bg-cyan-400" />
+            <div className="mt-1 h-2 w-2 rounded-full bg-violet-400" />
             <p className="text-sm text-slate-300">{step}</p>
           </motion.div>
         ))}

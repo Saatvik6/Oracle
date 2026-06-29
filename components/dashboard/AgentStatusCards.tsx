@@ -38,7 +38,7 @@ export default function AgentStatusCards() {
           >
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">{agent.name}</h3>
-              <span className="text-xs text-cyan-400 font-bold">ACTIVE</span>
+              <span className="text-xs text-violet-400 font-bold">ACTIVE</span>
             </div>
 
             <p className="text-sm text-slate-400 mt-2">
