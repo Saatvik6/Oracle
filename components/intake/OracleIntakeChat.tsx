@@ -27,6 +27,8 @@ export default function OracleIntakeChat({ onReady }: Props) {
   const [input, setInput] = useState("");
   const [state, setState] = useState<IntakeState>("collecting_commitments");
   const [questions, setQuestions] = useState<ClarificationQuestion[]>([]);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [clarificationRound, setClarificationRound] = useState(0);
   const [latestResult, setLatestResult] = useState<IntakeResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -42,10 +44,12 @@ export default function OracleIntakeChat({ onReady }: Props) {
 
   const progress = useMemo(() => {
     if (state === "ready_to_generate" || state === "report_generated") return 100;
-    if (state === "asking_clarifications") return 68;
+    if (latestResult?.confidence) {
+      return Math.max(12, Math.round(latestResult.confidence.overall * 100));
+    }
     if (state === "analyzing_scope") return 45;
     return messages.length > 1 ? 28 : 12;
-  }, [messages.length, state]);
+  }, [latestResult, messages.length, state]);
 
   useEffect(() => {
     return () => {
@@ -187,16 +191,27 @@ export default function OracleIntakeChat({ onReady }: Props) {
     setInput("");
     setPendingAttachments([]);
     setQuestions([]);
+    setSelectedAnswers({});
     setError("");
     setLoading(true);
     setState("analyzing_scope");
 
     try {
       await new Promise((resolve) => window.setTimeout(resolve, 500));
+      const requestMessages = (latestResult ? updatedMessages.slice(-4) : updatedMessages).map(
+        (message, index, recent) => ({
+          ...message,
+          attachments: index === recent.length - 1 ? message.attachments : undefined,
+        })
+      );
       const response = await fetch("/api/intake", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages, previousResult: latestResult }),
+        body: JSON.stringify({
+          messages: requestMessages,
+          previousResult: latestResult,
+          clarificationRound,
+        }),
       });
       const data = await response.json();
 
@@ -205,6 +220,9 @@ export default function OracleIntakeChat({ onReady }: Props) {
       const result = data as IntakeResult;
       setLatestResult(result);
       setQuestions(result.clarificationQuestions || []);
+      if (result.status === "needs_clarification") {
+        setClarificationRound((round) => Math.min(2, round + 1));
+      }
       setState(
         result.status === "ready" ? "ready_to_generate" : "asking_clarifications"
       );
@@ -217,9 +235,17 @@ export default function OracleIntakeChat({ onReady }: Props) {
           timestamp: new Date().toISOString(),
         },
       ]);
+      if (result.status === "ready") {
+        setLoading(false);
+        await generateReport(result);
+      }
     } catch (caught) {
-      setState("collecting_commitments");
-      setError(caught instanceof Error ? caught.message : "Something went wrong.");
+      setPendingAttachments(attachments);
+      setQuestions(latestResult?.clarificationQuestions || []);
+      setState(latestResult ? "asking_clarifications" : "collecting_commitments");
+      setError(
+        `${caught instanceof Error ? caught.message : "That message could not be processed."} Your existing intake is still safe.`
+      );
     } finally {
       setLoading(false);
     }
@@ -238,15 +264,22 @@ export default function OracleIntakeChat({ onReady }: Props) {
   }
 
   function answerQuestion(question: ClarificationQuestion, answer: string) {
-    void submitContent(`${question.question}\nAnswer: ${answer}`);
+    setSelectedAnswers((current) => ({ ...current, [question.id]: answer }));
   }
 
-  async function generateReport() {
-    if (!latestResult || latestResult.status !== "ready") return;
+  function submitSelectedAnswers() {
+    const answers = questions
+      .filter((question) => selectedAnswers[question.id])
+      .map((question) => `${question.question}\nAnswer: ${selectedAnswers[question.id]}`);
+    if (answers.length) void submitContent(answers.join("\n\n"), []);
+  }
+
+  async function generateReport(result = latestResult) {
+    if (!result || result.status !== "ready") return;
     setGenerating(true);
     setError("");
     try {
-      await onReady(latestResult);
+      await onReady(result);
       setState("report_generated");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Report generation failed.");
@@ -270,7 +303,11 @@ export default function OracleIntakeChat({ onReady }: Props) {
             </p>
           </div>
           <span className="border border-white/10 px-3 py-1 text-xs text-slate-400">
-            {state === "ready_to_generate" ? "Ready" : "Intake in progress"}
+            {latestResult?.confidence
+              ? `${Math.round(latestResult.confidence.overall * 100)}% confidence`
+              : state === "ready_to_generate"
+                ? "Ready"
+                : "Building a draft"}
           </span>
         </div>
         <div className="mt-5 h-px overflow-hidden bg-white/[0.07]">
@@ -327,7 +364,11 @@ export default function OracleIntakeChat({ onReady }: Props) {
                     type="button"
                     disabled={loading}
                     onClick={() => answerQuestion(question, option)}
-                    className="border border-white/10 bg-[#151721] px-3 py-2 text-left text-xs text-slate-200 transition-[border-color,color,transform] duration-200 hover:border-[#7f77dd] hover:text-white active:scale-[0.98] disabled:opacity-50"
+                    className={`border px-3 py-2 text-left text-xs transition-[border-color,color,background-color,transform] duration-200 active:scale-[0.98] disabled:opacity-50 ${
+                      selectedAnswers[question.id] === option
+                        ? "border-[#7f77dd] bg-[#7f77dd]/20 text-white"
+                        : "border-white/10 bg-[#151721] text-slate-200 hover:border-[#7f77dd] hover:text-white"
+                    }`}
                   >
                     {option}
                   </button>
@@ -336,6 +377,21 @@ export default function OracleIntakeChat({ onReady }: Props) {
             )}
           </div>
         ))}
+
+        {Object.keys(selectedAnswers).length > 0 && !loading && (
+          <div className="ml-11 flex items-center justify-between gap-4 border-t border-white/[0.07] pt-4">
+            <p className="text-xs text-slate-500">
+              {Object.keys(selectedAnswers).length} of {questions.length} answered
+            </p>
+            <button
+              type="button"
+              onClick={submitSelectedAnswers}
+              className="bg-[#6b63c7] px-4 py-2 text-xs font-semibold text-white transition-[background-color,transform] duration-200 hover:bg-[#7f77dd] active:scale-95"
+            >
+              Send answers together
+            </button>
+          </div>
+        )}
 
         {loading && (
           <div className="ml-11 flex items-center gap-3 text-sm text-slate-500">
@@ -365,7 +421,7 @@ export default function OracleIntakeChat({ onReady }: Props) {
             </div>
             <button
               type="button"
-              onClick={generateReport}
+              onClick={() => void generateReport()}
               disabled={generating}
               className="flex items-center justify-center gap-2 bg-[#6b63c7] px-5 py-3 text-sm font-semibold text-white transition-[background-color,transform,opacity] duration-200 hover:bg-[#7f77dd] active:scale-95 disabled:opacity-60"
             >

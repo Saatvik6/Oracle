@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getGeminiClient } from "@/lib/gemini/client";
 import { buildScheduleChatPrompt } from "@/lib/gemini/prompts";
+import { addGeminiModelHeaders, generateWithModelFallback } from "@/lib/gemini/modelPool";
 
 export async function POST(req: Request) {
   try {
@@ -15,22 +15,23 @@ export async function POST(req: Request) {
       );
     }
 
-    const client = getGeminiClient();
-
     const prompt = buildScheduleChatPrompt(analysis, question);
 
-    const response = await client.models.generateContent({
-      model: "gemini-2.5-flash",
+    const result = await generateWithModelFallback({
       contents: prompt,
     });
 
-    const answer = response.text;
+    const answer = result.response.text;
 
     if (!answer) {
       throw new Error("Gemini returned empty chat response");
     }
 
-    return NextResponse.json({ answer });
+    return addGeminiModelHeaders(
+      NextResponse.json({ answer }),
+      result.model,
+      result.attempts.length
+    );
   } catch (error) {
     console.error("Chat API error:", error);
 

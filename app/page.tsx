@@ -11,7 +11,6 @@ import RescuePlanPanel from "@/components/dashboard/RescuePlanPanel";
 import AIReasoningPanel from "@/components/dashboard/AIReasoningPanel";
 import FutureTimeline from "@/components/dashboard/FutureTimeline";
 import AdaptiveReplanner from "@/components/dashboard/AdaptiveReplanner";
-import HealthScoreGauge from "@/components/dashboard/HealthScoreGauge";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import AgentStatusCards from "@/components/dashboard/AgentStatusCards";
 import AIActivityFeed from "@/components/dashboard/AIActivityFeed";
@@ -166,27 +165,39 @@ export default function Home() {
           </section>
         ) : (
           <section className="space-y-6 pt-10">
-            <header className="flex flex-col gap-5 pb-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9b94e3]">Executive workspace</p>
-                <h1 className="mt-3 text-4xl font-semibold tracking-[-0.035em] md:text-5xl">Your Chief of Staff has a plan.</h1>
-                <p className="mt-3 max-w-2xl leading-7 text-slate-400">Scope, capacity, risk, and the decisions that protect your day.</p>
-              </div>
-              <p className="text-xs text-slate-600">Updated from your latest intake</p>
-            </header>
-
+            <AnimatedSection><ExecutiveBrief analysis={analysis} /></AnimatedSection>
             {demoMode && (
               <div className="flex flex-wrap items-center justify-between gap-3 border-y border-emerald-800/50 bg-emerald-950/20 px-4 py-3 text-sm text-emerald-200">
                 <span><strong>Offline demo.</strong> Static scenario, zero Gemini calls.</span>
                 <span className="text-xs font-semibold uppercase tracking-wider">Presentation safe</span>
               </div>
             )}
-            <AnimatedSection><ExecutiveBrief analysis={analysis} /></AnimatedSection>
-            <AnimatedSection delay={0.03}><ApprovalQueue analysis={analysis} simulationOnly={demoMode} /></AnimatedSection>
-            <AnimatedSection delay={0.04}><AgentDebate analysis={analysis} /></AnimatedSection>
-            <AnimatedSection delay={0.045}><CalendarPlanner analysis={analysis} /></AnimatedSection>
-            <AnimatedSection delay={0.05}><ScopePanel commitments={analysis.workloadAnalysis ?? []} /></AnimatedSection>
-            <AnimatedSection delay={0.07}>
+
+            <AnimatedSection delay={0.02}><RescuePlanPanel rescuePlan={analysis.rescuePlan} analysis={analysis} /></AnimatedSection>
+            <AnimatedSection delay={0.04}><ApprovalQueue analysis={analysis} simulationOnly={demoMode} /></AnimatedSection>
+            <AnimatedSection delay={0.06}><CalendarPlanner analysis={analysis} /></AnimatedSection>
+            {!demoMode && <AnimatedSection delay={0.08}><ScheduleChat analysis={analysis} /></AnimatedSection>}
+            {!demoMode && <AnimatedSection delay={0.1}><AdaptiveReplanner analysis={analysis} onReplan={replanCommitments} loading={loading} /></AnimatedSection>}
+
+            <AnimatedSection delay={0.12}><WorkloadHeatmap analysis={analysis} /></AnimatedSection>
+            <DashboardCharts analysis={analysis} />
+            <AnimatedSection delay={0.14}>
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <CollisionMap analysis={analysis} />
+                <RiskDashboard analysis={analysis} />
+              </div>
+            </AnimatedSection>
+            <AnimatedSection delay={0.16}><RiskSimulator analysis={analysis} /></AnimatedSection>
+
+            <AnimatedSection delay={0.18}><AgentDebate analysis={analysis} /></AnimatedSection>
+            <AnimatedSection delay={0.2}>
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <TriageBoard analysis={analysis} />
+                <FutureTimeline analysis={analysis} />
+              </div>
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.22}>
               <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-3">
                 <div className="xl:col-span-2"><WorkBreakdownPanel commitments={analysis.workloadAnalysis ?? []} /></div>
                 <div className="space-y-6">
@@ -195,31 +206,21 @@ export default function Home() {
                 </div>
               </div>
             </AnimatedSection>
-            <AnimatedSection delay={0.09}>
-              <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-                <HealthScoreGauge analysis={analysis} />
-                <div className="xl:col-span-2"><AIActivityFeed steps={analysis.reasoningSteps} /></div>
-              </div>
-            </AnimatedSection>
-            <AnimatedSection delay={0.11}>
-              <AgentStatusCards />
-            </AnimatedSection>
-            {!demoMode && <AnimatedSection delay={0.13}><ScheduleChat analysis={analysis} /></AnimatedSection>}
-            <AnimatedSection delay={0.15}><RiskSimulator analysis={analysis} /></AnimatedSection>
-            <AnimatedSection delay={0.17}><WorkloadHeatmap analysis={analysis} /></AnimatedSection>
-            <DashboardCharts analysis={analysis} />
-            <AnimatedSection delay={0.19}>
+            <AnimatedSection delay={0.24}><ScopePanel commitments={analysis.workloadAnalysis ?? []} /></AnimatedSection>
+
+            <AnimatedSection delay={0.26}>
               <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                <TriageBoard analysis={analysis} />
-                <RiskDashboard analysis={analysis} />
-                <FutureTimeline analysis={analysis} />
-                {!demoMode && <AdaptiveReplanner analysis={analysis} onReplan={replanCommitments} loading={loading} />}
-                <CollisionMap analysis={analysis} />
-                <RescuePlanPanel rescuePlan={analysis.rescuePlan} />
+                <AIActivityFeed steps={analysis.reasoningSteps} />
+                <AgentStatusCards />
               </div>
             </AnimatedSection>
-            <AnimatedSection delay={0.21}><AIReasoningPanel steps={analysis.reasoningSteps} /></AnimatedSection>
-            <AnimatedSection delay={0.23}><AgentPipeline /></AnimatedSection>
+
+            <AnimatedSection delay={0.28}>
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <AIReasoningPanel steps={analysis.reasoningSteps} />
+                <AgentPipeline />
+              </div>
+            </AnimatedSection>
           </section>
         )}
       </div>

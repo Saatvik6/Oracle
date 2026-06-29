@@ -53,10 +53,20 @@ export interface IntakeAvailability {
   constraints: string[];
 }
 
+export interface IntakeConfidence {
+  deadline: number;
+  effort: number;
+  capacity: number;
+  priority: number;
+  dependencies: number;
+  overall: number;
+}
+
 export interface IntakeResult {
   status: "needs_clarification" | "ready";
   oracleMessage: string;
   commitmentsDraft: CommitmentDraft[];
   availability: IntakeAvailability;
+  confidence: IntakeConfidence;
   clarificationQuestions: ClarificationQuestion[];
 }

@@ -1,5 +1,6 @@
 import { AnalysisResult } from "@/types/commitment";
 import { buildExecutiveBrief } from "@/lib/engine/executiveBrief";
+import { getCommitmentHealthScore } from "@/lib/engine/dashboardMetrics";
 import { BriefcaseBusiness, CalendarClock, ShieldAlert, Sparkles } from "lucide-react";
 
 export default function ExecutiveBrief({ analysis }: { analysis: AnalysisResult }) {
@@ -9,6 +10,7 @@ export default function ExecutiveBrief({ analysis }: { analysis: AnalysisResult 
     (item) => item.id === highestRisk?.commitmentId
   );
   const gap = Math.max(0, analysis.capacity.workloadGapHours);
+  const health = getCommitmentHealthScore(analysis);
 
   return (
     <section className="overflow-hidden border border-violet-400/25 bg-gradient-to-br from-violet-400/10 via-[#11131a] to-[#151329]">
@@ -49,12 +51,17 @@ export default function ExecutiveBrief({ analysis }: { analysis: AnalysisResult 
           </div>
           <div className="mt-5 space-y-5">
             <div>
-              <p className="text-3xl font-bold text-white">{analysis.commitments.length}</p>
-              <p className="mt-1 text-xs text-slate-400">commitments reviewed</p>
+              <div className="flex items-end gap-2">
+                <p className="text-4xl font-bold text-white">{health}</p>
+                <p className="pb-1 text-sm text-slate-500">/ 100</p>
+              </div>
+              <p className="mt-1 text-xs text-slate-400">Schedule health</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-rose-300">{brief.criticalCount}</p>
-              <p className="mt-1 text-xs text-slate-400">critical interventions</p>
+              <p className={`text-3xl font-bold ${gap > 0 ? "text-rose-300" : "text-emerald-300"}`}>
+                {gap > 0 ? `${gap}h` : "0h"}
+              </p>
+              <p className="mt-1 text-xs text-slate-400">Capacity shortfall</p>
             </div>
             <div className="border-t border-slate-800 pt-5">
               <p className="text-xs font-bold uppercase text-slate-500">My recommendation</p>

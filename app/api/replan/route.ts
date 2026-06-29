@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getGeminiClient } from "@/lib/gemini/client";
 import { buildReplanPrompt } from "@/lib/gemini/prompts";
 import { analysisJsonSchema } from "@/lib/gemini/analysisSchema";
+import { addGeminiModelHeaders, generateWithModelFallback } from "@/lib/gemini/modelPool";
 
 export async function POST(req: Request) {
   try {
@@ -15,16 +15,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const client = getGeminiClient();
-
     const prompt = buildReplanPrompt(
       previousAnalysis,
       eventType,
       new Date().toISOString()
     );
 
-    const response = await client.models.generateContent({
-      model: "gemini-2.5-flash-lite",
+    const result = await generateWithModelFallback({
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -32,7 +29,7 @@ export async function POST(req: Request) {
       },
     });
 
-    const text = response.text;
+    const text = result.response.text;
 
     if (!text) {
       throw new Error("Gemini returned empty response");
@@ -40,7 +37,11 @@ export async function POST(req: Request) {
 
     const parsed = JSON.parse(text);
 
-    return NextResponse.json(parsed);
+    return addGeminiModelHeaders(
+      NextResponse.json(parsed),
+      result.model,
+      result.attempts.length
+    );
   } catch (error) {
     console.error("Replan API error:", error);
 

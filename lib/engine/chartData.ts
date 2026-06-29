@@ -14,10 +14,31 @@ export function buildChartData(analysis: AnalysisResult) {
     Collapsing: 0,
   };
 
-  const effort = analysis.commitments.map((c) => ({
-    task: c.title.length > 18 ? c.title.slice(0, 18) + "..." : c.title,
-    hours: c.estimatedEffortHours,
-  }));
+  const effort = analysis.commitments
+    .map((commitment) => ({
+      task:
+        commitment.title.length > 24
+          ? `${commitment.title.slice(0, 24)}…`
+          : commitment.title,
+      fullTitle: commitment.title,
+      hours: commitment.estimatedEffortHours,
+    }))
+    .sort((a, b) => b.hours - a.hours);
+
+  const riskScores = analysis.risks
+    .map((item) => {
+      const commitment = analysis.commitments.find(
+        (candidate) => candidate.id === item.commitmentId
+      );
+      const title = commitment?.title || item.commitmentId;
+      return {
+        task: title.length > 24 ? `${title.slice(0, 24)}…` : title,
+        fullTitle: title,
+        risk: item.riskScore,
+        status: item.healthStatus,
+      };
+    })
+    .sort((a, b) => b.risk - a.risk);
 
   analysis.commitments.forEach((c) => {
     if (c.importance === "high") priority.High++;
@@ -57,5 +78,6 @@ export function buildChartData(analysis: AnalysisResult) {
     })),
 
     effortData: effort,
+    riskScoreData: riskScores,
   };
 }

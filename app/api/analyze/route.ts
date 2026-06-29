@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const prompt = buildAnalyzePrompt(intake as IntakeResult, new Date().toISOString());
 
     const response = await client.models.generateContent({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
