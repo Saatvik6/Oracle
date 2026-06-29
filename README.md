@@ -1,15 +1,72 @@
+<div align="center">
+
 # 🔮 Oracle AI
+
 ### Predict. Prioritize. Rescue.
 
-> **Oracle AI is an agentic deadline intelligence system that predicts deadline failures before they happen and automatically generates adaptive rescue plans.**
+**The AI Crisis Intelligence System that predicts deadline failures before they happen and automatically builds a rescue plan.**
 
-Built for **Google AI Studio Vibe2Ship Hackathon 2026** under the **"The Last-Minute Life Saver"** problem statement. :contentReference[oaicite:0]{index=0}
+Built for **Coding Ninjas × Google for Developers — Vibe2Ship 2026**  
+Problem Statement 1 • *The Last-Minute Life Saver*
 
----
+`Gemini 2.5` • `Google AI Studio` • `Next.js` • `TypeScript` • `Tailwind CSS` • `Cloud Run`
 
-## 📸 Preview
+</div>
 
-> *(Add screenshots/GIFs here)*
+# 🚀 Why Oracle is Different
+
+Most AI productivity assistants help you organize tasks.
+
+Oracle helps you **avoid failure**.
+
+Instead of becoming another to-do list, Oracle behaves like an AI crisis analyst that continuously asks:
+
+> **"Which commitment is most likely to fail next?"**
+
+Then it acts before that prediction becomes reality.
+
+Understand
+      ↓
+Predict
+      ↓
+Detect
+      ↓
+Rescue
+      ↓
+Adapt
+
+## 🔮 Future Failure Prediction
+
+Oracle's core innovation is the **Future Prediction Engine**.
+
+Instead of asking:
+
+"What should I do today?"
+
+Oracle continuously asks:
+
+"What is most likely to fail next?"
+
+Current Commitments
+        │
+        ▼
+Available Time Analysis
+        │
+        ▼
+Workload Pressure Model
+        │
+        ▼
+Deadline Collision Detection
+        │
+        ▼
+Failure Probability Prediction
+        │
+        ▼
+AI Rescue Strategy
+
+## 📊 Inside Oracle : A Preview
+
+Oracle visualizes every commitment through an AI-first dashboard built around prediction rather than task management.
 
 | Dashboard | AI Rescue Plan | Risk Analysis |
 |-----------|---------------|---------------|
