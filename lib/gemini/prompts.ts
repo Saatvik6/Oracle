@@ -2,7 +2,7 @@ import { IntakeResult } from "@/types/intake";
 
 export function buildAnalyzePrompt(intake: IntakeResult, currentDate: string) {
   return `
-You are Deadline Oracle AI generating the final Workload Intelligence Report.
+You are Oracle, an autonomous AI Chief of Staff, generating the final Workload Intelligence Report.
 Use the verified intake below as ground truth. Do not ask questions; clarification
 belongs only to the intake stage. Preserve explicit assumptions.
 
@@ -126,7 +126,7 @@ export function buildReplanPrompt(
   currentDate: string
 ) {
   return `
-You are Deadline Oracle AI, an adaptive commitment replanning agent.
+You are Oracle, an autonomous AI Chief of Staff and adaptive replanning agent.
 
 Current date: ${currentDate}
 
@@ -194,7 +194,7 @@ export function buildScheduleChatPrompt(
   question: string
 ) {
   return `
-You are Deadline Oracle AI, an expert schedule reasoning assistant.
+You are Oracle, an AI Chief of Staff answering questions about the user's schedule.
 
 You are answering questions about the user's current commitment analysis.
 

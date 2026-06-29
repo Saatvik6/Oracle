@@ -23,6 +23,9 @@ import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import WorkBreakdownPanel from "@/components/dashboard/WorkBreakdownPanel";
 import ConfidencePanel from "@/components/dashboard/ConfidencePanel";
 import ScopePanel from "@/components/dashboard/ScopePanel";
+import ApprovalQueue from "@/components/dashboard/ApprovalQueue";
+import AgentDebate from "@/components/dashboard/AgentDebate";
+import CalendarPlanner from "@/components/dashboard/CalendarPlanner";
 import AgentPipeline from "@/components/dashboard/AgentPipeline";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 import OracleLoading from "@/components/ui/OracleLoading";
@@ -113,14 +116,14 @@ export default function Home() {
       <section className="mx-auto max-w-7xl space-y-8">
         <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-cyan-400">Deadline Oracle AI</p>
+            <p className="text-sm font-medium text-cyan-400">Oracle · AI Chief of Staff</p>
             <h1 className="mt-2 max-w-4xl text-4xl font-bold md:text-5xl">
-              {analysis ? "Your workload intelligence report." : "Talk it through. Then trust the plan."}
+              {analysis ? "Your Chief of Staff has a plan." : "Your AI Chief of Staff."}
             </h1>
             <p className="mt-4 max-w-2xl text-slate-400">
               {analysis
                 ? "Scope, capacity, risk, and rescue actions—built from a clarified understanding of your commitments."
-                : "An AI project manager that investigates your commitments before it predicts deadline risk."}
+                : "I investigate your commitments, negotiate conflicts, and prepare the decisions that protect your day."}
             </p>
           </div>
           {analysis ? (
@@ -157,6 +160,18 @@ export default function Home() {
             )}
             <AnimatedSection>
               <ExecutiveBrief analysis={analysis} />
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.03}>
+              <ApprovalQueue analysis={analysis} simulationOnly={demoMode} />
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.04}>
+              <AgentDebate analysis={analysis} />
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.045}>
+              <CalendarPlanner analysis={analysis} />
             </AnimatedSection>
 
             <AnimatedSection delay={0.05}>

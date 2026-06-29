@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, useMemo, useState } from "react";
-import { ArrowRight, CheckCircle2, Loader2, Send, Sparkles } from "lucide-react";
+import { ChangeEvent, DragEvent, FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, CheckCircle2, FileAudio, FileImage, FileText, Loader2, Mic, Paperclip, Send, Square, Sparkles, X } from "lucide-react";
 import {
   ChatMessage,
   ClarificationQuestion,
+  IntakeAttachment,
   IntakeResult,
   IntakeState,
 } from "@/types/intake";
@@ -30,6 +31,14 @@ export default function OracleIntakeChat({ onReady }: Props) {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
+  const [pendingAttachments, setPendingAttachments] = useState<IntakeAttachment[]>([]);
+  const [recording, setRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<number | null>(null);
 
   const progress = useMemo(() => {
     if (state === "ready_to_generate" || state === "report_generated") return 100;
@@ -38,20 +47,145 @@ export default function OracleIntakeChat({ onReady }: Props) {
     return messages.length > 1 ? 28 : 12;
   }, [messages.length, state]);
 
-  async function submitContent(content: string) {
+  useEffect(() => {
+    return () => {
+      if (recordingTimerRef.current) window.clearInterval(recordingTimerRef.current);
+      if (mediaRecorderRef.current?.state === "recording") {
+        mediaRecorderRef.current.onstop = null;
+        mediaRecorderRef.current.stop();
+      }
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
+
+  async function addFiles(files: File[]) {
+    const remaining = Math.max(0, 4 - pendingAttachments.length);
+    const selected = files.slice(0, remaining);
+    if (!selected.length) return;
+
+    const allowed = selected.filter((file) => {
+      const supported =
+        file.type.startsWith("image/") ||
+        file.type.startsWith("audio/") ||
+        file.type === "application/pdf" ||
+        file.type === "text/plain";
+      return supported && file.size <= 8 * 1024 * 1024;
+    });
+    if (allowed.length !== selected.length) {
+      setError("Use PDF, image, audio, or text files up to 8 MB each.");
+    }
+
+    const attachments = await Promise.all(
+      allowed.map(
+        (file) =>
+          new Promise<IntakeAttachment>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () =>
+              resolve({
+                id: crypto.randomUUID(),
+                name: file.name,
+                mimeType: file.type || "text/plain",
+                dataUrl: String(reader.result),
+                size: file.size,
+              });
+            reader.onerror = () => reject(new Error(`Could not read ${file.name}.`));
+            reader.readAsDataURL(file);
+          })
+      )
+    );
+    setPendingAttachments((current) => [...current, ...attachments].slice(0, 4));
+  }
+
+  function handleFiles(event: ChangeEvent<HTMLInputElement>) {
+    void addFiles(Array.from(event.target.files || []));
+    event.target.value = "";
+  }
+
+  function handleDrop(event: DragEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void addFiles(Array.from(event.dataTransfer.files));
+  }
+
+  async function startRecording() {
+    if (recording || pendingAttachments.length >= 4) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setError("Microphone recording is not supported in this browser.");
+      return;
+    }
+
+    try {
+      setError("");
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const preferredType = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find(
+        (type) => MediaRecorder.isTypeSupported(type)
+      );
+      const recorder = preferredType
+        ? new MediaRecorder(stream, { mimeType: preferredType })
+        : new MediaRecorder(stream);
+
+      mediaStreamRef.current = stream;
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        const mimeType = recorder.mimeType || preferredType || "audio/webm";
+        const extension = mimeType.includes("mp4") ? "m4a" : "webm";
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        const file = new File([blob], `oracle-voice-note-${Date.now()}.${extension}`, {
+          type: mimeType,
+        });
+        mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+        void addFiles([file]);
+      };
+
+      recorder.start();
+      setRecordingSeconds(0);
+      setRecording(true);
+      recordingTimerRef.current = window.setInterval(
+        () => setRecordingSeconds((seconds) => seconds + 1),
+        1000
+      );
+    } catch (caught) {
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+      setError(
+        caught instanceof DOMException && caught.name === "NotAllowedError"
+          ? "Microphone access was denied. Allow it in your browser settings and try again."
+          : "Oracle could not start microphone recording."
+      );
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+    if (recordingTimerRef.current) window.clearInterval(recordingTimerRef.current);
+    recordingTimerRef.current = null;
+    setRecording(false);
+  }
+
+  function formatRecordingTime(seconds: number) {
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+  }
+
+  async function submitContent(content: string, attachments = pendingAttachments) {
     const cleanContent = content.trim();
-    if (!cleanContent || loading || generating) return;
+    if ((!cleanContent && !attachments.length) || loading || generating) return;
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
-      content: cleanContent,
+      content: cleanContent || "Review the attached material and extract every commitment.",
       timestamp: new Date().toISOString(),
+      attachments,
     };
     const updatedMessages = [...messages, userMessage];
 
     setMessages(updatedMessages);
     setInput("");
+    setPendingAttachments([]);
     setQuestions([]);
     setError("");
     setLoading(true);
@@ -61,7 +195,7 @@ export default function OracleIntakeChat({ onReady }: Props) {
       const response = await fetch("/api/intake", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({ messages: updatedMessages, previousResult: latestResult }),
       });
       const data = await response.json();
 
@@ -160,6 +294,15 @@ export default function OracleIntakeChat({ onReady }: Props) {
               }`}
             >
               {message.content}
+              {!!message.attachments?.length && (
+                <div className="mt-3 flex flex-wrap gap-2 border-t border-white/10 pt-3">
+                  {message.attachments.map((attachment) => (
+                    <span key={attachment.id} className="rounded-lg bg-slate-950/40 px-2.5 py-1 text-[11px] text-slate-200">
+                      {attachment.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -224,7 +367,12 @@ export default function OracleIntakeChat({ onReady }: Props) {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
+          <form
+            onSubmit={handleSubmit}
+            onDrop={handleDrop}
+            onDragOver={(event) => event.preventDefault()}
+            className="space-y-3"
+          >
             <textarea
               value={input}
               onChange={(event) => setInput(event.target.value)}
@@ -236,15 +384,68 @@ export default function OracleIntakeChat({ onReady }: Props) {
                   ? "Answer in your own words, or choose an option above…"
                   : "Example: Hackathon Sunday, chemistry assignment tomorrow, 4 hours free tonight…"
               }
-              className="min-h-24 flex-1 resize-none rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400 disabled:opacity-60"
+              className="min-h-24 w-full resize-none rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400 disabled:opacity-60"
             />
-            <button
-              type="submit"
-              disabled={!input.trim() || loading || generating}
-              className="flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40 sm:self-end"
-            >
-              <Send size={16} /> Send
-            </button>
+            {!!pendingAttachments.length && (
+              <div className="flex flex-wrap gap-2">
+                {pendingAttachments.map((attachment) => (
+                  <div key={attachment.id} className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300">
+                    {attachment.mimeType.startsWith("image/") ? <FileImage size={14} className="text-violet-300" /> : attachment.mimeType.startsWith("audio/") ? <FileAudio size={14} className="text-amber-300" /> : <FileText size={14} className="text-cyan-300" />}
+                    <span className="max-w-44 truncate">{attachment.name}</span>
+                    <button
+                      type="button"
+                      aria-label={`Remove ${attachment.name}`}
+                      onClick={() => setPendingAttachments((current) => current.filter((item) => item.id !== attachment.id))}
+                      className="text-slate-500 hover:text-white"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-start gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*,audio/*,application/pdf,text/plain"
+                  onChange={handleFiles}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={loading || pendingAttachments.length >= 4}
+                  className="flex items-center gap-2 rounded-xl border border-dashed border-slate-600 px-4 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-cyan-400 hover:text-cyan-300 disabled:opacity-40"
+                >
+                  <Paperclip size={15} /> Add PDF, screenshot, or voice note
+                </button>
+                <button
+                  type="button"
+                  onClick={recording ? stopRecording : startRecording}
+                  disabled={loading || generating || (!recording && pendingAttachments.length >= 4)}
+                  className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold transition disabled:opacity-40 ${
+                    recording
+                      ? "border-rose-400 bg-rose-400/10 text-rose-300"
+                      : "border-slate-600 text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
+                  }`}
+                >
+                  {recording ? <Square size={14} fill="currentColor" /> : <Mic size={15} />}
+                  {recording ? `Stop ${formatRecordingTime(recordingSeconds)}` : "Record voice"}
+                  {recording && <span className="h-2 w-2 animate-pulse rounded-full bg-rose-400" />}
+                </button>
+                <p className="basis-full text-[10px] text-slate-600">Or drag files here · up to 4 files, 8 MB each</p>
+              </div>
+              <button
+                type="submit"
+                disabled={recording || (!input.trim() && !pendingAttachments.length) || loading || generating}
+                className="flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Send size={16} /> Send to Oracle
+              </button>
+            </div>
           </form>
         )}
       </div>

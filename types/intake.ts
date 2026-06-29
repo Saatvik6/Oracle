@@ -10,6 +10,15 @@ export interface ChatMessage {
   role: "user" | "oracle";
   content: string;
   timestamp: string;
+  attachments?: IntakeAttachment[];
+}
+
+export interface IntakeAttachment {
+  id: string;
+  name: string;
+  mimeType: string;
+  dataUrl: string;
+  size: number;
 }
 
 export interface ClarificationQuestion {

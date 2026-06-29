@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getGeminiClient } from "@/lib/gemini/client";
-import { ChatMessage, IntakeResult } from "@/types/intake";
+import { ChatMessage, IntakeAttachment, IntakeResult } from "@/types/intake";
 
 function isConversation(value: unknown): value is ChatMessage[] {
   return (
@@ -107,8 +107,19 @@ export async function POST(req: Request) {
     }
 
     const client = getGeminiClient();
+    const previousResult = body.previousResult as IntakeResult | undefined;
+    const latestMessage = body.messages[body.messages.length - 1] as ChatMessage;
+    const attachments = (latestMessage.attachments || []).slice(0, 4);
+    const conversationForPrompt = body.messages.map((message: ChatMessage) => ({
+      role: message.role,
+      content: message.content,
+      attachments: message.attachments?.map((attachment) => ({
+        name: attachment.name,
+        mimeType: attachment.mimeType,
+      })),
+    }));
     const prompt = `
-You are Deadline Oracle AI acting as a rigorous project intake manager.
+You are Oracle, the user's autonomous AI Chief of Staff, conducting a rigorous project intake.
 Current time: ${new Date().toISOString()}
 
 Do not create a schedule, risk report, or rescue plan yet. Extract commitments,
@@ -149,12 +160,23 @@ Return only JSON with this exact shape:
 }
 
 Conversation:
-${JSON.stringify(body.messages, null, 2)}
+${JSON.stringify(conversationForPrompt, null, 2)}
+
+Previous structured intake (reuse stable facts and IDs when present):
+${previousResult ? JSON.stringify(previousResult, null, 2) : "None"}
 `;
+
+    const parts: Array<
+      { text: string } | { inlineData: { mimeType: string; data: string } }
+    > = [{ text: prompt }];
+    for (const attachment of attachments as IntakeAttachment[]) {
+      const match = attachment.dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+    }
 
     const response = await client.models.generateContent({
       model: "gemini-2.5-flash-lite",
-      contents: prompt,
+      contents: [{ role: "user", parts }],
       config: { responseMimeType: "application/json" },
     });
 
