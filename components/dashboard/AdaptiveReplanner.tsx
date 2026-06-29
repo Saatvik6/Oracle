@@ -4,6 +4,7 @@ interface Props {
   analysis: AnalysisResult;
   onReplan: (eventType: string) => void;
   loading: boolean;
+  demoMode?: boolean;
 }
 
 const events = [
@@ -28,10 +29,18 @@ const events = [
 export default function AdaptiveReplanner({
   onReplan,
   loading,
+  demoMode = false,
 }: Props) {
   return (
     <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-      <h2 className="text-xl font-bold mb-2">Adaptive Replanning</h2>
+      <div className="mb-2 flex items-center justify-between gap-4">
+        <h2 className="text-xl font-bold">Adaptive Replanning</h2>
+        {demoMode && (
+          <span className="border border-violet-400/30 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+            Simulated
+          </span>
+        )}
+      </div>
 
       <p className="text-sm text-slate-400 mb-4">
         Tell the agent what changed. It will recalculate risk, triage, timeline,

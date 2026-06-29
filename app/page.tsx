@@ -58,6 +58,61 @@ export default function Home() {
   async function replanCommitments(eventType: string) {
     if (!analysis) return;
     setLoading(true);
+
+    if (demoMode) {
+      await new Promise((resolve) => window.setTimeout(resolve, 550));
+      const riskDelta: Record<string, number> = {
+        completed: -14,
+        delayed: 8,
+        missed: 15,
+        blocked: 11,
+      };
+      const delta = riskDelta[eventType] || 0;
+      const risks = analysis.risks.map((risk) => {
+        const riskScore = Math.max(5, Math.min(100, risk.riskScore + delta));
+        return {
+          ...risk,
+          riskScore,
+          healthStatus: (
+            riskScore >= 85
+              ? "collapsing"
+              : riskScore >= 70
+                ? "critical"
+                : riskScore >= 40
+                  ? "at_risk"
+                  : "healthy"
+          ) as typeof risk.healthStatus,
+        };
+      });
+      const requiredReduction = eventType === "completed" ? 2 : 0;
+      const availableReduction =
+        eventType === "missed"
+          ? availableHoursPerDay
+          : eventType === "delayed"
+            ? availableHoursPerDay * 0.5
+            : 0;
+      const capacity = {
+        ...analysis.capacity,
+        requiredHoursTotal: Math.max(0, analysis.capacity.requiredHoursTotal - requiredReduction),
+        availableHoursRemaining: Math.max(0, analysis.capacity.availableHoursRemaining - availableReduction),
+        workloadGapHours: 0,
+      };
+      capacity.workloadGapHours =
+        Math.round((capacity.requiredHoursTotal - capacity.availableHoursRemaining) * 10) / 10;
+      setAnalysis({
+        ...analysis,
+        risks,
+        capacity,
+        reasoningSteps: [
+          `Demo update received: ${eventType}.`,
+          "Risk, capacity, and the rescue timeline were recalculated locally.",
+          ...analysis.reasoningSteps,
+        ],
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/replan", {
         method: "POST",
@@ -176,8 +231,8 @@ export default function Home() {
             <AnimatedSection delay={0.02}><RescuePlanPanel rescuePlan={analysis.rescuePlan} analysis={analysis} /></AnimatedSection>
             <AnimatedSection delay={0.04}><ApprovalQueue analysis={analysis} simulationOnly={demoMode} /></AnimatedSection>
             <AnimatedSection delay={0.06}><CalendarPlanner analysis={analysis} /></AnimatedSection>
-            {!demoMode && <AnimatedSection delay={0.08}><ScheduleChat analysis={analysis} /></AnimatedSection>}
-            {!demoMode && <AnimatedSection delay={0.1}><AdaptiveReplanner analysis={analysis} onReplan={replanCommitments} loading={loading} /></AnimatedSection>}
+            <AnimatedSection delay={0.08}><ScheduleChat analysis={analysis} demoMode={demoMode} /></AnimatedSection>
+            <AnimatedSection delay={0.1}><AdaptiveReplanner analysis={analysis} onReplan={replanCommitments} loading={loading} demoMode={demoMode} /></AnimatedSection>
 
             <AnimatedSection delay={0.12}><WorkloadHeatmap analysis={analysis} /></AnimatedSection>
             <DashboardCharts analysis={analysis} />

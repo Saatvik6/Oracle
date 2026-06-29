@@ -5,6 +5,7 @@ import { AnalysisResult, ChatMessage } from "@/types/commitment";
 
 interface Props {
   analysis: AnalysisResult;
+  demoMode?: boolean;
 }
 
 const suggestedQuestions = [
@@ -14,7 +15,31 @@ const suggestedQuestions = [
   "Which task is the biggest bottleneck?",
 ];
 
-export default function ScheduleChat({ analysis }: Props) {
+function buildDemoAnswer(analysis: AnalysisResult, question: string) {
+  const highestRisk = [...analysis.risks].sort((a, b) => b.riskScore - a.riskScore)[0];
+  const highestCommitment = analysis.commitments.find(
+    (item) => item.id === highestRisk?.commitmentId
+  );
+  const normalized = question.toLowerCase();
+
+  if (normalized.includes("first")) {
+    return `Start with ${analysis.rescuePlan.orderedActions[0] || highestCommitment?.title}. It protects the nearest failure point before lower-impact work consumes the available window.`;
+  }
+  if (normalized.includes("finish") || normalized.includes("on time")) {
+    return analysis.capacity.workloadGapHours > 0
+      ? `Not without intervention. The current plan is short by ${analysis.capacity.workloadGapHours} hours. Approving the rescue plan and deferring flexible work makes the schedule viable.`
+      : "Yes, the work fits the available capacity, provided the protected focus blocks remain intact.";
+  }
+  if (normalized.includes("miss")) {
+    return `Missing tomorrow would put ${highestCommitment?.title || "the highest-risk commitment"} under immediate pressure. I would defer stable work, preserve the final review buffer, and recalculate the remaining blocks.`;
+  }
+  if (normalized.includes("bottleneck")) {
+    return `${highestCommitment?.title || "The highest-risk commitment"} is the main bottleneck at ${highestRisk?.riskScore || 0}% risk because it combines urgency with concentrated effort.`;
+  }
+  return `The safest answer is to protect ${highestCommitment?.title || "the critical path"} first, then use the approval queue to move flexible work. This demo response is calculated locally from the seeded analysis.`;
+}
+
+export default function ScheduleChat({ analysis, demoMode = false }: Props) {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -40,6 +65,15 @@ export default function ScheduleChat({ analysis }: Props) {
     setLoading(true);
 
     try {
+      if (demoMode) {
+        await new Promise((resolve) => window.setTimeout(resolve, 450));
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: buildDemoAnswer(analysis, finalQuestion) },
+        ]);
+        return;
+      }
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -90,7 +124,7 @@ export default function ScheduleChat({ analysis }: Props) {
         </div>
 
         <span className="text-xs text-violet-400 font-bold border border-violet-400/40 rounded-full px-3 py-1">
-          LIVE
+          {demoMode ? "SIMULATED" : "LIVE"}
         </span>
       </div>
 
