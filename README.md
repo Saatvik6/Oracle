@@ -13,6 +13,8 @@ Problem Statement 1 • *The Last-Minute Life Saver*
 
 </div>
 
+---------------------------------------------------------------------------------------------------
+
 # 🚀 Why Oracle is Different
 
 Most AI productivity assistants help you organize tasks.
